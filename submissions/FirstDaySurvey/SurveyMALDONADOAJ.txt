@@ -57,5 +57,3 @@ SAS : 3
 Stata : 5
 The Simpsons : 5
 Zenodo : 1
-
-Testing testing testing
