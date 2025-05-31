@@ -35,25 +35,25 @@ of your fork of the course repository.
 
 THING : VALUE
 
-C / C++ : 0
-ChatGPT: 0
-Claude : 0
-Economics : 0
-Fortran : 0
-git : 0
-GitHub : 0
-Grok : 0
-Julia : 0
-Jupyter : 0
-LaTeX : 0
-Litmaps: 0
-Markdown : 0
-Matlab : 0
-Overleaf: 0
-PaperPile : 0
-Python : 0
-R : 0
-SAS : 0
-Stata : 0
-The Simpsons : 0
-Zenodo : 0
+C / C++ : 3
+ChatGPT: 8
+Claude : 5
+Economics : 7
+Fortran : 2
+git : 4
+GitHub : 4
+Grok : 3
+Julia : 3
+Jupyter : 5
+LaTeX : 8
+Litmaps: 1
+Markdown : 7
+Matlab : 3
+Overleaf: 8
+PaperPile : 1
+Python : 6
+R : 7
+SAS : 3
+Stata : 4
+The Simpsons : HOMER!
+Zenodo : 1
