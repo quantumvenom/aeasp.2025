@@ -176,5 +176,15 @@ cython_debug/
 # MyST build outputs
 _build
 
-*.idea/
+# LaTeX stuff
+*.aux
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+
+# Various hidden files
+*.idea
 *.DS_Store
+*.vcs
