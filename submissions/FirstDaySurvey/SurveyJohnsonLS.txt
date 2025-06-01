@@ -7,7 +7,7 @@ to know anything about it, nor that we will teach anything about it.
 Please read and follow the instructions carefully.
 
 1) Immediately save a copy of this file as SurveyLASTNAMEII.txt, where LASTNAME
-is your last (family) name and II is your first (and middle) initials.
+is your last (family) name and II is your first (and middle) initials. Capitalize normally.
 
 2) For each item below the dashed line, change the numeral 0 to the most appropriate 
 value according to the legend below. Please answer based on your state of knowledge
@@ -35,25 +35,25 @@ of your fork of the course repository.
 
 THING : VALUE
 
-C / C++ : 4
-ChatGPT: 4
-Claude : 4
-Economics : 8
-Fortran : 3
-git : 7
-GitHub : 7
-Grok : 3
+C / C++ : 2
+ChatGPT: 7
+Claude : 1
+Economics : 6
+Fortran : 2
+git : 2
+GitHub : 4
+Grok : 1
 Julia : 3
-Jupyter : 7
-LaTeX : 7
-Litmaps: 3
-Markdown : 6
-Matlab : 5
-Overleaf: 6
-PaperPile : 3
-Python : 7
-R : 3
-SAS : 3
-Stata : 6
-The Simpsons : 5
-Zenodo : 4
+Jupyter : 1
+LaTeX : 3
+Litmaps: 1
+Markdown : 1
+Matlab : 2
+Overleaf: 3
+PaperPile : 1
+Python : 4
+R : 4
+SAS : 2
+Stata : 7
+The Simpsons : 3
+Zenodo : 1
