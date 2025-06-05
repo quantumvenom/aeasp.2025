@@ -160,6 +160,7 @@ student_survey_data = get_numbers_from_all_students(filenames)
 make_fig = lambda x : make_histogram_for(x, names_of_things,
                                          student_survey_data,
                                          mnw_survey_data,)
+
 make_and_save_fig = lambda x : make_histogram_for(x, names_of_things,
                                                   student_survey_data,
                                                   mnw_survey_data,
