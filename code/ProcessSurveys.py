@@ -14,8 +14,8 @@ my_survey = "SurveyWhiteMN.txt"
 filenames = os.listdir(survey_dir)
 
 # Open my survey and get the names of the things
-with open(survey_dir + my_survey, 'r') as f:
-    my_text = f.read()
+with open(survey_dir + my_survey, 'rb') as f:
+    my_text = str(f.read())
     f.close()
     
 # Look for where the data starts
@@ -26,6 +26,7 @@ idx += 15
 
 # Make a shorter string with only the stuff past idx
 my_short_text = my_text[idx:]
+my_short_text = my_short_text.replace("\n","\r")
 
 # Make a list of the lines below that
 my_split_text = my_short_text.splitlines()
