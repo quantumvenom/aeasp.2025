@@ -1,1 +1,3 @@
 Here is a new text file for the branch!
+Hello my friend
+Hello my lady
