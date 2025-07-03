@@ -1,0 +1,431 @@
+% !TeX spellcheck = en_GB
+       \documentclass[aspectratio=169]{beamer}
+%	\usetheme{warsaw}
+            \usepackage{setspace}
+            \usepackage{graphicx} %draft option suppresses graphics dvi display
+            \newcommand{\Prob}{\operatorname{Prob}}
+            \clubpenalty 5000
+            \widowpenalty 5000
+            \renewcommand{\baselinestretch}{1.23}
+            \usepackage{amsmath}
+            \usepackage{amsthm}
+            \usepackage{amsfonts}
+            \usepackage{amssymb}
+            \usepackage{bbm}
+            \usepackage{cancel}
+            \usepackage{soul}
+	 \newcommand{\E}{\mathbb{E}}
+	 \newcommand{\R}{\mathbb{R}}
+	 \newcommand{\pd}[2]{\frac{\partial#1}{\partial#2}}
+	 \newcommand{\der}[2]{\frac{\text{d}#1}{\text{d}#2}}
+	\newcommand{\bi}{\begin{itemize}}
+	\newcommand{\ei}{\end{itemize}}
+	\newcommand{\Die}{\mathsf{D}}
+	\newcommand{\Live}{\cancel{\Die}}
+
+\author{Matthew N. White}
+
+\title[add]{ECOG 315 / ECON 181, Summer 2025 \\ Advanced Research Methods and Statistical Programming \\ Week 6 Lecture Slides}
+
+\institute[HU]{Howard University}
+
+\date{July 2, 2025}
+
+\begin{document}
+
+% ========== Title slide =================
+\begin{frame}
+\maketitle
+\end{frame}
+
+
+% === What is dynamic programming? ======
+
+\begin{frame}
+\frametitle{Introduction to Dynamic Models}
+\begin{itemize}
+	\item Want to model decisions and outcomes of \textbf{agents} over (discrete) time
+	
+	\item Formal name: microeconomic dynamic stochastic optimization problems
+	
+	\item Outcomes probably subject to risk: random shocks from some distribution
+	
+	\item Standard assumptions: agents know their model and observe their current state, choose optimal action according to their preferences
+	
+	\item Almost always assume that agents have \textbf{time consistent preferences}: expectations of preferences in future align with actual preferences in future
+	
+	\item Upshot: want to maximize discounted sum of utility flows, geometric discounting
+\end{itemize}
+\end{frame}
+
+% =========== Model ingredients ==============
+
+\begin{frame}
+\frametitle{Ingredients of a MicroDSOP}
+
+What do we need to put into a MicroDSOP?
+\begin{itemize}
+	\item Who are the agents? Who is this model about?
+	
+	\item How fast does time move? How long is a ``period''?
+	
+	\item What do they want? What are their preferences?
+	
+	\item What do the agents observe about their situation when they act?
+	
+	\item What actions can agents take? What constraints do they face?
+	
+	\item What sources of risk/uncertainty to the agents face (shocks)?
+	
+	\item How do actions and shocks generate next period's state?
+\end{itemize}
+
+\end{frame}
+
+% ======= Consumption-saving intro =======
+
+\begin{frame}
+\frametitle{Jumping into the Deep End: Consumption-Saving Models}
+
+Let's sketch out a (very) basic consumption-saving model:
+\begin{itemize}
+	\item Who is this model about? Person who earns income, consumes, and saves
+	
+	\item How long is a ``period''? Usually a year or a quarter, depends
+	
+	\item What do they want? They like to consume; CRRA preferences ($\rho$)
+	
+	\item What do agents observe? They know their market resources $M_t$ or cash-on-hand
+	
+	\item What actions can agents take? Divide $M_t$ between consumption $C_t$ and assets $A_t$
+	
+	\item What constraints do they face? Can't borrow assets: $A_t \geq 0$.
+	
+	\item What are the risks? Labor income $Y_t$ is drawn iid from distribution $F$
+	
+	\item How does the situation change? Assets earn interest at risk-free factor $\mathsf{R} = (1+r)$
+\end{itemize}
+
+\end{frame}
+
+% =========== Baby CS model ==============
+
+\begin{frame}
+\frametitle{Translating the Model Into Math}
+
+\begin{align*}
+\text{consumer's problem:} & ~~ \max_{C_t} \E \left[ \sum_{t=0}^T \beta^t U(C_t) ~\bigg|~ M_0 \right] ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+A_t &= M_t - C_t, \\
+A_t &\geq 0, \\
+K_{t+1} &= A_t, \\
+M_{t+1} &= \mathsf{R} K_{t+1}, + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+% =========== Baby CS model short ==============
+
+\begin{frame}
+\frametitle{Translating the Model Into Math}
+
+\begin{align*}
+\text{consumer's (shorter) problem:} & ~~ \max_{C_t} \E \left[ \sum_{t=0}^T \beta^t \frac{C_t^{1-\rho}}{1-\rho} ~\bigg|~ M_0 \right] ~~\text{s.t.} \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+% ======= Bellman representation ========
+
+\begin{frame}
+\frametitle{Taking it One Period at a Time: Bellman Representation}
+
+\begin{itemize}
+	\item The model has $T+1$ periods, and $T$ could be big
+	
+	\item $T$ random income shocks will realize along the way
+	
+	\item Bellman insight: in period $t$, assume that you will act optimally in all later periods; now decision is only between current utility flow and future value (of resources)
+	
+	\item Bellman value function $V_t(X_t)$ maps from current state $X_t$ to $\R$, representing expected PDV of utility flows from taking optimal actions from $t$ onward
+	
+	\item Upshot: Can solve the model by backward induction, starting from $t=T$
+\end{itemize}
+\end{frame}
+
+% ======= Translating to Bellman ==========
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_0(M_0) &= \max_{C_t} ~\E_0 \left[ \sum_{t=0}^T \beta^t U(C_t) ~\bigg|~ M_0 \right] ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_0(M_0) &= \max_{C_t} ~\E_0 \left[ U(C_0) + \sum_{t=1}^T \beta^t U(C_t) ~\bigg|~ M_0 \right] ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_0(M_0) &= \max_{C_t} ~ \left\{ U(C_0) + \E_0 \left[ \sum_{t=1}^T \beta^t U(C_t) ~\bigg|~ M_0 \right] \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_0(M_0) &= \max_{C_t} ~ \left\{ U(C_0) + \beta \E_0 \left[ \sum_{t=1}^T \beta^{t-1} U(C_t) ~\bigg|~ M_0 \right] \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_0(M_0) &= \max_{C_t} ~ \left\{ U(C_0) + \beta \E_0 \E_1 \left[ \sum_{t=1}^T \beta^{t-1} U(C_t) ~\bigg|~ M_1 \right] \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_0(M_0) &= \max_{C_t} ~ \left\{ U(C_0) + \beta \E_0 \overbrace{\E_1 \left[ \sum_{t=1}^T \beta^{t-1} U(C_t) ~\bigg|~ M_1 \right]}^{\equiv V_1(M_1)} \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_0(M_0) &= \max_{C_0} ~ \left\{ U(C_0) + \beta \E_0 V_1(M_1) \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Putting the Model into Bellman Form}
+
+\begin{align*}
+V_t(M_t) &= \max_{C_t} ~ \left\{ U(C_t) + \beta \E_t V_{t+1}(M_{t+1}) \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+% ======= Backward induction logic ========
+
+\begin{frame}
+\frametitle{Solving By Backward Induction}
+
+\begin{itemize}
+	\item Bellman: the \textbf{value function} is all you need to know about the future
+	
+	\item Value function: expected PDV of making optimal choices from $t$ onward (conditional on state)
+	
+	\item Start from the end of the problem, work backward
+	
+	\item Solving terminal period $t=T$ is trivial: there's no future, consume it all!
+	
+	\item Terminal period value function is then just $V_T(M_T) = U(M_T)$
+	
+	\item Solving non-terminal periods is where it gets more interesting
+\end{itemize}
+\end{frame}
+
+% ====== Solving terminal period =============
+
+\begin{frame}
+\frametitle{Solving the Terminal period}
+
+\begin{align*}
+V_T(M_T) &= \max_{C_T} ~ \left\{ U(C_T) + \beta \E_T V_{T+1}(M_{T+1}) \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Solving the Terminal period}
+
+\begin{align*}
+V_T(M_T) &= \max_{C_T} ~ \left\{ U(C_T) + \beta \E_T \overbrace{V_{T+1}(M_{T+1})}^{=0, \text{ no future}} \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t, \\
+M_{t+1} &= \mathsf{R} (M_t - C_t) + Y_{t+1}, \\
+Y_{t+1} &\sim F.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Solving the Terminal period}
+
+\begin{align*}
+V_T(M_T) &= \max_{C_T} ~ \left\{ U(C_T) + \beta \cdot 0 \right\} ~~\text{s.t.} \\
+U(C_t) &= \frac{C_t^{1-\rho}}{1-\rho}, \\
+C_t &\leq M_t.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Solving the Terminal period}
+
+\begin{align*}
+V_T(M_T) &= \max_{C_T} ~ \left\{ \frac{C_T^{1-\rho}}{1-\rho} +  \right\} ~~\text{s.t.} \\
+C_T &\leq M_T.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Solving the Terminal period}
+
+\begin{align*}
+V_T(M_T) &= \frac{M_T^{1-\rho}}{1-\rho}.
+\end{align*}
+\end{frame}
+
+
+% ====== Solving non-terminal periods ========
+
+\begin{frame}
+\frametitle{Solving Non-Terminal Periods}
+
+\begin{itemize}
+	\item There is no closed form solution to non-terminal periods
+	
+	\item Problem can only be solved \textbf{numerically} on a computer
+	
+	\item Numeric solution: approximate representation of true solution to chosen accuracy
+	
+	\item Solve optimization problem on a finite set of state space gridpoints
+	
+	\item Represent value function and policy function (consumption function) with approximating interpolations
+	
+	\item But how do we actually do that? Several ways to go about this
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Method 1: Explicit Value Maximization}
+
+\begin{itemize}
+	\item Bellman representation says to maximize sum of current period utility and expected discounted future value, so... let's do that
+	
+	\item Choose a set of gridpoints for $M_t$, starting at/near zero
+	
+	\item For each $M_t$, search for the $C_t$ that maximizes utility plus expected future value
+	
+	\item Construct value function by interpolating on $(M_t, V_t)$ pairs: connect the dots
+	
+	\item Construct consumption function by interpolating on $(M_t, C_t)$ pairs
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Method 2: First Order Conditions}
+
+\begin{itemize}
+	\item When we maximize $U(C_t) + \beta \E V_{t+1}(M_{t+1})$, we are implicitly finding a solution to the first order conditions for optimality
+	
+	\item Derivative of maximand w.r.t $C_t$: $U'(C_t) - \mathsf R \beta \E V'_{t+1}(M_{t+1})$
+	
+	\item FOC for interior solution: that should be zero
+	
+	\item FOC for constrained solution: it should be positive, but $C_t = M_t$
+	
+	\item To do this, we need the \textbf{marginal value function} $V'_{t}(M_{t})$
+	
+	\item Envelope condition: $V'_{t}(M_{t}) = U'(C_t)$ (for optimal $C_t$)
+	
+	\item Don't need to compute the value function at all! Consumption function is sufficient statistic for marginal value function! 
+\end{itemize}
+\end{frame}
+
+
+% ====== Envelope condition ========
+
+\begin{frame}
+\frametitle{Logic of the Envelope Condition}
+
+\begin{align*}
+V_t(M_t) &= \max_{C_t} ~ \left\{ U(C_t) + \beta \E_t V_{t+1}(M_{t+1}) \right\}, \\
+\mathbf{C}_t(M_t) &\equiv \arg\max_{C_t} ~ \left\{ U(C_t) + \beta \E_t V_{t+1}(M_{t+1}) \right\}, \\
+U'(C_t) &= \mathsf{R} \beta \E_t V'_{t+1}(M_{t+1}) \text{~(first order condition)}
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Logic of the Envelope Condition}
+
+\begin{align*}
+V_t(M_t) &= U(\mathbf{C}_t(M_t)) + \beta \E_t V_{t+1}(M_{t+1}) \Longrightarrow \\
+V_t(M_t) &= U(\mathbf{C}_t(M_t)) + \beta \E_t V_{t+1}(\mathsf{R} (M_t - \mathbf{C}_t(M_t)) + Y_{t+1}) \Longrightarrow \\
+V'_t(M_t) &= \mathbf{C}'_t(M_t) U'(\mathbf{C}_t(M_t)) + (1 - \mathbf{C}'_t(M_t))\mathsf{R} \beta \E_t V'_{t+1}(\mathsf{R} (M_t - \mathbf{C}_t(M_t)) + Y_{t+1}) \Longrightarrow \\
+V'_t(M_t) &= \mathbf{C}'_t(M_t) U'(C_t) + (1 - \mathbf{C}'_t(M_t)) \mathsf{R} \beta \E_t V'_{t+1}(M_{t+1}) \Longrightarrow \\
+V'_t(M_t) &= \mathbf{C}'_t(M_t) U'(C_t) + (1 - \mathbf{C}'_t(M_t)) U'(C_t) \Longrightarrow \\
+V'_t(M_t) &= (\mathbf{C}'_t(M_t) + 1 - \mathbf{C}'_t(M_t)) U'(C_t) \Longrightarrow \\
+V'_t(M_t) &= U'(C_t).
+\end{align*}
+\end{frame}
+
+
+
+\end{document}
